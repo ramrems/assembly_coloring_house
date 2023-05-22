@@ -1,19 +1,21 @@
 #make_COM#
 
 ; COM file is loaded at CS:0100h
+;ramrems
 ORG 100h
 
 .model small
 .STACK 100H
 .data
-yildiz db '•', '$'
-giris1 db 'evin rengi icin sayý seciniz','$'
-color2 db ?
 
-giris2 db 'kýrmýz:1 mavi:2 yesil:3 sarý:4','$'
-giris3 db 'kapý rengini seciniz','$'
+giris1 db 'choose number for coloring house','$'
+giris2 db 'red:1 blue:2 green:3 yellow:4','$'
+giris3 db 'choose color of the door','$'
+giris4 db 'choose color of the roof','$'
 
 color db ?
+color2 db ?
+color3 db ?
 
 .code
 mov ax,@data
@@ -27,9 +29,7 @@ INT 10H
 lea dx,giris2
 mov ah,9
 int 21h
-;yana yazi yazdirdim burada
-
-
+;yana renklerle ilgili yazý yazdirdim burada
 
 MOV AH,02H  
 MOV BH,00 
@@ -39,11 +39,10 @@ INT 10H
 lea dx,giris1 
 mov ah,9
 int 21h
-;burada yana yazi yazdirdim
+; yana yazi 
 
 mov ax, 3 ;ekraný temizlemek için kullanýyoruz
 int 10h   ;her iþlemin sonunda olmalý diyebiliriz
-
 
 ;koda giris yapalim
 mov ah, 00h ; klavyeden tuþa basýldýðýný kontrol etmek için
@@ -80,23 +79,16 @@ mov ah, 00 ; rengi ayarlamak için
 mov bh, 00 ; arka plan rengini ayarlamak için
 mov bl, [color] ; renk deðiþkenindeki deðere göre BL kaydedicisine renk atama
 
-   	
 MOV     DL, 30   ; current column.
 MOV     DH, 14   ; current row.
-;MOV     BL, 44h   ; current attributes. renk belirliyor
 
-;JMP sol
-
-JMP next_char ; ilk satýrý yazdýrmak icin?
+JMP next_char ; ilk satýrý yazdýrmak icin
 
 next_row:
 INC     DH
-CMP     DH, 23  ;satýr sayýsý 11 o yüzden 25 olmalý(14+11)
+CMP     DH, 23  ;satýr sayýsý 9 o yüzden 23 olmalý(14+9)
 JE      stop_print
 MOV     DL, 30
-;INC     BL
-;MOV     DH, 14   ; current row.
-;MOV     BL, 11h 
 
 next_char:
 ; set cursor position at (DL,DH):
@@ -115,7 +107,6 @@ CMP     DL, 48  ;soldan kaçýncý konumdan sonra asagý inecegi
 JE      next_row
 JMP     next_char
 
-
 stop_print:
 ; set cursor position at (DL,DH):
 MOV     DL, 40  ; column.
@@ -131,7 +122,7 @@ INT 10H
 lea dx,giris3
 mov ah,9
 int 21h
-;yana yazi yazdirdim burada
+;yana  kapý rengiyle ilgli yazý yazdý burada
 
 mov ah, 00h ; klavyeden tuþa basýldýðýný kontrol etmek için
 int 16h     ; alýnan tuþ kodu AH'ya atanýr
@@ -171,16 +162,13 @@ MOV     DL, 35   ; current column.
 MOV     DH, 18   ; current row.
 MOV     BL, [color2]   ; current attributes. renk belirliyor
 
-JMP next_char2 ; ilk satýrý yazdýrmak icin?
+JMP next_char2 ; ilk satýrý yazdýrmak icin(kapý)
 
 next_row2:
 INC     DH
-CMP     DH, 23  ;satýr sayýsý 11 o yüzden 25 olmalý(14+11)
+CMP     DH, 23  ; kapýnýn satýr sayýsý (23-18)
 JE      stop_print2
 MOV     DL, 35
-;INC     BL
-;MOV     DH, 14   ; current row.
-;MOV     BL, 11h 
 
 next_char2:
 ; set cursor position at (DL,DH):
@@ -193,12 +181,10 @@ MOV     CX, 1
 MOV     AH, 09h
 INT     10h
 
-;INC     BL      ; next attributes.
 INC     DL
 CMP     DL, 43  ;soldan kaçýncý konumdan sonra asagý inecegi 
 JE      next_row2
 JMP     next_char2
-
 
 stop_print2:
 ; set cursor position at (DL,DH):
@@ -209,7 +195,7 @@ INT     10h
 
 MOV     DL, 42   ; current column.
 MOV     DH, 20   ; current row.
-MOV     BL, 88h   ; current attributes. renk belirliyor
+MOV     BL, 08h   ; kapý kolu rengi
 
 MOV     AH, 02h
 INT     10h
@@ -219,106 +205,105 @@ MOV     CX, 1
 MOV     AH, 09h
 INT     10h
 
+MOV AH,02H  
+MOV BH,00 
+MOV DH,11  
+MOV DL,46
+INT 10H
+lea dx,giris4
+mov ah,9
+int 21h
+;yana  catý rengiyle ilgli yazý yazdý burada
 
-MOV DH,4   
-MOV DL,39
-call sol 
-MOV DH,4   
-MOV DL,38
-call sag
+mov ah, 00h ; klavyeden tuþa basýldýðýný kontrol etmek için
+int 16h     ; alýnan tuþ kodu AH'ya atanýr
+; kullanýcýnýn girdiði sayýya göre renk deðiþkenine atama yapalým
+cmp al, '1'
+je red3
+cmp al, '2'
+je blue3
+cmp al, '3'
+je green3
+cmp al, '4'
+je yellow3
+jmp done3
 
-MOV DH,5   
-MOV DL,39
-call sol
-MOV DH,5   
-MOV DL,38
-call sag 
+red3:
+mov byte ptr [color3], 44h ; renk deðiþkenine 4 (kýrmýzý) atama
+jmp done3
 
-MOV DH,6   
-MOV DL,39
-call sol
-MOV DH,6   
-MOV DL,38
-call sag
+blue3:
+mov byte ptr [color3], 11h ; renk deðiþkenine 1 (mavi) atama
+jmp done3
 
-MOV DH,7   
-MOV DL,39
-call sol
-MOV DH,7   
-MOV DL,38
-call sag  
+green3:
+mov byte ptr [color3], 22h ; renk deðiþkenine 2 (yeþil) atama
+jmp done3
 
-MOV DH,8   
-MOV DL,39
-call sol
-MOV DH,8   
-MOV DL,38
-call sag 
+yellow3:
+mov byte ptr [color3], 66h ; renk deðiþkenine 6 (sarý) atama
+jmp done3
 
-MOV DH,9   
-MOV DL,39
-call sol
-MOV DH,9   
-MOV DL,38
-call sag  
+done3:
+mov ah, 00 ; rengi ayarlamak için
+mov bh, 00 ; arka plan rengini ayarlamak için
+mov bl, [color3] ; renk deðiþkenindeki deðere göre BL kaydedicisine renk atama
 
-MOV DH,10   
-MOV DL,39
-call sol
-MOV DH,10   
-MOV DL,38
-call sag  
+MOV     DL, 38   ; current column.
+MOV     DH, 5   ; current row.
+MOV     BL, [color3]   ; current attributes. renk belirliyor
 
-MOV DH,11   
-MOV DL,39
-call sol
-MOV DH,11   
-MOV DL,38
-call sag   
- 
-MOV DH,12   
-MOV DL,39
+MOV SI,[1000H]
+MOV [1000H],0
 
-sol:
-    MOV AH,02H  
-    MOV BH,00 
-    ADD DH,1
-    SUB DL,1
-    INT 10H
-    call yaz
-    cmp DH,12
-    jle sol
-  
-MOV DH,12   
-MOV DL,38   
-sag:
-    MOV AH,02H  
-    MOV BH,00 
-    ADD DH,1 ;ekleme iþlemi, cursor hareketi için olacak bu aradki boþluk gibi
-    ADD DL,1
-    INT 10H
-    call yaz ;yazdýrma için
-    cmp DH,12
-    jle sag ;if dh>=15
-;burada ucgenin sag kismini yaptik ilk basta
+JMP cati ; ilk satýrý yazdýrmak icin
 
+next_row_cati:
 
-yaz proc
-    ;push ax
-    ;push bx
-    mov ah, 02h
-    int 10h ; 0Ch konsol ekranýnda renkli karakterler yazdýrmak için kullanýlýr
-    mov bh, 0 ; arka plan rengi (siyah)
-    mov bl, 44h ; ön plan rengi (sarý)
-    mov al, yildiz
-    MOV AH, 09h
-    int 10h
-    ;pop bx
-    ;pop ax
-    ret
-yaz endp
-;bu fonksiyonun amaci
-;yildizlari kolayca yazdirmak.
+ADD     [1000H],1
+MOV     CL,[1000H]
+
+CMP     [1000H], 10 ; kapýnýn satýr sayýsý (23-18)
+JE      stop_print_cati
+MOV     DL, 39
+MOV     DH,4
+ADD     DH,CL 
+
+cati:
+; set cursor position at (DL,DH):
+MOV     AH, 02h
+INT     10h
+
+MOV     AL, '•'
+MOV     BH, 0
+;MOV     CX, 1
+MOV     AH, 09h
+INT     10h
+
+DEC     DL
+INC     DH
+CMP     DH, 14  ;soldan kaçýncý konumdan sonra asagý inecegi 
+JE      next_row_cati
+JMP     cati
+
+stop_print_cati:
+; set cursor position at (DL,DH):
+MOV     DL, 40  ; column.
+MOV     DH, 19  ; row.
+MOV     AH, 02h
+INT     10h
+
+MOV     DL, 42   ; current column.
+MOV     DH, 20   ; current row.
+MOV     BL, 08h   ; kapý kolu rengi
+
+MOV     AH, 02h
+INT     10h
+MOV     AL, '•'
+MOV     BH, 0
+MOV     CX, 1
+MOV     AH, 09h
+INT     10h
 
 RET
 
